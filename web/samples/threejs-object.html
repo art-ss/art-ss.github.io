@@ -1,0 +1,72 @@
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/90/three.min.js"></script>
+	<script src="js/controls/OrbitControls.js"></script>
+	<script src='js/stats.min.js'></script>
+	<style>
+		body {
+			overflow: hidden;
+			margin: 0;
+		}
+	</style>
+</head>
+<body>
+<script>
+(function(){
+	var onWindowResize = function(){
+		camera.aspect = window.innerWidth/window.innerHeight;
+		camera.updateProjectionMatrix();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+	};
+	window.addEventListener("resize", onWindowResize, false);
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(width, height);
+	document.body.appendChild(renderer.domElement);
+
+	var scene = new THREE.Scene();
+
+	var camera = new THREE.PerspectiveCamera(45, width/height);
+	camera.position.set(0, 10, 10);
+
+	var plane = new THREE.Mesh(
+		new THREE.PlaneGeometry(100, 100, 20, 20),
+		new THREE.MeshBasicMaterial({
+			wireframe: true
+		})
+	);
+	plane.rotation.x = -Math.PI/2;
+	scene.add(plane);
+
+	var box = new THREE.Mesh(
+		new THREE.BoxGeometry(1, 1, 1),
+		new THREE.MeshNormalMaterial()
+	);
+	scene.add(box);
+
+	var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	var stats = new Stats();
+	document.body.appendChild(stats.domElement);
+
+	scene.add(new THREE.AxesHelper(1000));
+
+	var animate = function(){
+		requestAnimationFrame(animate);
+
+		controls.update();
+		stats.update();
+
+		renderer.render(scene, camera);
+	};
+	animate();
+})();
+</script>
+</body>
+</html>

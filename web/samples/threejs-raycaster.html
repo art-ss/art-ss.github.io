@@ -1,0 +1,124 @@
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/90/three.min.js"></script>
+	<script src="js/libs/dat.gui.min.js"></script>
+	<script src="js/controls/OrbitControls.js"></script>
+	<script src='js/stats.min.js'></script>
+	<style>
+		body {
+			overflow: hidden;
+			margin: 0;
+		}
+	</style>
+</head>
+<body>
+<script>
+(function(){
+	var onWindowResize = function(){
+		camera.aspect = window.innerWidth/window.innerHeight;
+		camera.updateProjectionMatrix();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+	};
+	window.addEventListener("resize", onWindowResize, false);
+
+	var info = document.createElement("div");
+	info.style.textAlign = "center";
+	info.style.color = "#ccc";
+	info.style.position = "absolute";
+	info.style.top = 0;
+	info.style.left = 0;
+	info.style.width = "100%";
+	document.body.appendChild(info);
+
+	var setting = function(){
+		this.x = 0;
+		this.y = 10;
+		this.z = 0;
+	};
+
+	var set = new setting();
+	var gui = new dat.GUI();
+	var ray = function(){
+		box.position.set(set.x, set.y, set.z);
+
+		var raycaster = new THREE.Raycaster(box.position, new THREE.Vector3(0, -1, 0));
+		var arr = raycaster.intersectObjects([plane], true);
+		var point = null;
+		for(var i = 0; i < arr.length; i++){
+			var a = arr[i];
+			if(point === null || point > a.point.y){
+				point = a.point.y;
+			}
+		}
+		info.innerHTML = point;
+		if(point !== null){
+			square.position.set(set.x, point+1, set.z);
+		}
+	};
+	gui.add(set, "x", -50, 50).onChange(ray);
+	gui.add(set, "y", -50, 50).onChange(ray);
+	gui.add(set, "z", -50, 50).onChange(ray);
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setPixelRatio(window.devicePixelRatio);
+	renderer.setSize(width, height);
+	document.body.appendChild(renderer.domElement);
+
+	var scene = new THREE.Scene();
+
+	var camera = new THREE.PerspectiveCamera(45, width/height);
+	camera.position.set(30, 30, 30);
+
+	var plane = new THREE.Mesh(
+		new THREE.PlaneGeometry(100, 100, 10, 10),
+		new THREE.MeshBasicMaterial({
+			wireframe: true
+		})
+	);
+	plane.rotation.x = -Math.PI/2;
+	plane.geometry.vertices.forEach(function(v){
+		v.z = Math.random()*8-4;
+	});
+	plane.updateMatrixWorld();
+	scene.add(plane);
+
+	var box = new THREE.Mesh(
+		new THREE.BoxGeometry(1, 1, 1),
+		new THREE.MeshNormalMaterial()
+	);
+	box.position.y = 10;
+	scene.add(box);
+
+	var square = new THREE.Mesh(
+		new THREE.SphereGeometry(1, 32, 32),
+		new THREE.MeshNormalMaterial()
+	);
+	scene.add(square);
+
+	var controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+	var stats = new Stats();
+	document.body.appendChild(stats.domElement);
+
+	scene.add(new THREE.AxesHelper(1000));
+
+	ray();
+
+	var animate = function(){
+		requestAnimationFrame(animate);
+
+		controls.update();
+		stats.update();
+
+		renderer.render(scene, camera);
+	};
+	animate();
+})();
+</script>
+</body>
+</html>
